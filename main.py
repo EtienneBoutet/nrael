@@ -1,10 +1,12 @@
 from matplotlib import pyplot as plt
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from keras.datasets import mnist
 from keras.utils import to_categorical
+from sklearn.metrics import classification_report
 import numpy as np
-
+np.set_printoptions(suppress=True)
 
 # %%
 # extraire les images
@@ -68,7 +70,7 @@ m = 60000
 learning_rate = 1
 # %%
 # ACTUAL TRAINING
-for i in range(100):
+for i in range(2000):
     Z1 = np.matmul(w1, x_train) + b1
     A1 = sigmoid(Z1)
     Z2 = np.matmul(w2, A1) + b2
@@ -91,13 +93,34 @@ for i in range(100):
     w1 = w1 - learning_rate * dW1
     b1 = b1 - learning_rate * db1
 
-    if i % 10 == 0:
+    if i % 100 == 0:
         print("Epoch", i, "cost: ", cost)
 
 # %%
+# Tester avec données de test
+Z1 = np.matmul(w1, x_test) + b1
+A1 = sigmoid(Z1)
+Z2 = np.matmul(w2, A1) + b2
+A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0)
+
+# Pour métriques
+predictions = np.argmax(A2, axis=0)
+labels = np.argmax(y_test.T, axis=0)
+
 # %%
+# MÉTRIQUES
+
+def confusion_matrix(predictions, labels):
+    k = len(np.unique(labels))
+    result = np.zeros((k, k))
+    for i in range(len(labels)):
+        result[labels[i]][predictions[i]] += 1
+
+    return result
+
 # %%
-# %%
+print(confusion_matrix(predictions, labels))
+print(classification_report(predictions, labels))
 # %%
 # %%
 # %%
