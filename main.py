@@ -4,12 +4,14 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 from keras.datasets import mnist
 from keras.utils import to_categorical
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 import numpy as np
+
 np.set_printoptions(suppress=True)
+np.random.seed(400)
 
 # %%
-# extraire les images
+# Préparation des données
 def load_dataset():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     y_train = to_categorical(y_train)
@@ -27,19 +29,12 @@ def prep_pixels(train, test):
     # return normalized images
     return train_norm, test_norm
 
-
-# %%
 x_train, y_train, x_test, y_test = load_dataset()
 x_train, x_test = prep_pixels(x_train, x_test)
 
-# Données d'entraînement : x_train et y_train
-# Données de test        : x_test  et y_test
-
-# %%
 num_pixels = x_train.shape[1] * x_train.shape[2]
 x_train = x_train.reshape((x_train.shape[0], num_pixels)).T
 x_test = x_test.reshape((x_test.shape[0], num_pixels)).T
-
 
 # %%
 # Fonction d'activation
@@ -69,14 +64,20 @@ b2 = np.zeros((nnode_o1, 1))
 m = 60000
 learning_rate = 1
 # %%
+
+costs = []
+accuracy = []
+epochs = 1000
+
 # ACTUAL TRAINING
-for i in range(2000):
+for i in range(epochs):
     Z1 = np.matmul(w1, x_train) + b1
     A1 = sigmoid(Z1)
     Z2 = np.matmul(w2, A1) + b2
     A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0)
 
     cost = multiclass_cross_entropy(y_train.T, A2)
+    costs.append(cost)
 
     # Back-propagation
     dZ2 = A2 - y_train.T
@@ -93,6 +94,8 @@ for i in range(2000):
     w1 = w1 - learning_rate * dW1
     b1 = b1 - learning_rate * db1
 
+    accuracy.append(accuracy_score(np.argmax(A2, axis=0), np.argmax(y_train.T, axis=0)))
+
     if i % 100 == 0:
         print("Epoch", i, "cost: ", cost)
 
@@ -107,6 +110,7 @@ A2 = np.exp(Z2) / np.sum(np.exp(Z2), axis=0)
 predictions = np.argmax(A2, axis=0)
 labels = np.argmax(y_test.T, axis=0)
 
+
 # %%
 # MÉTRIQUES
 
@@ -118,11 +122,26 @@ def confusion_matrix(predictions, labels):
 
     return result
 
+
+def plot_cost_function(costs):
+    k = len(costs)
+    _, ax = plt.subplots()
+    ax.plot(list(range(1, k + 1)), costs)
+
+
+def plot_accuracy(accuracy):
+    k = len(accuracy)
+    _, ax = plt.subplots()
+    ax.plot(list(range(1, k + 1)), accuracy)
+
+
 # %%
 print(confusion_matrix(predictions, labels))
 print(classification_report(predictions, labels))
 # %%
+plot_cost_function(costs)
 # %%
+plot_accuracy(accuracy)
 # %%
 # %%
 # %%
