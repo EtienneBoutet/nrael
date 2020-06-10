@@ -1,7 +1,6 @@
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 import numpy as np
-import math
 import matplotlib.pyplot as plt
 
 class LinearRegression:
