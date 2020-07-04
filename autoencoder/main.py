@@ -1,5 +1,6 @@
 # %%
 
+import matplotlib
 from matplotlib import pyplot as plt
 import os
 
@@ -72,11 +73,11 @@ def reluDerivative(x):
 
 # %%
 m = 60000
-learning_rate = 1
+learning_rate = 0.1
 
 costs = []
 accuracy = []
-epochs = 2
+epochs = 1000
 
 for i in range(epochs):
     Z1 = np.matmul(w1, x_train) + b1
@@ -96,34 +97,77 @@ for i in range(epochs):
 
     # Backpropagation
 
+    # Couche 4
+    dZ4 = A4 - x_train
     dw4 = (2 / m) * np.matmul(
-            np.multiply(Z4 - x_train, reluDerivative(Z4)), 
+            np.multiply(dZ4, reluDerivative(Z4)), 
             A3.T
         )
+    db4 = (2 / m) * np.sum(dZ4, axis=1, keepdims=True)
 
-    # Pas certain de ça
-    db4 = (2 / m) * np.sum(Z4 - x_train, axis=1, keepdims=True)
-
-    # à trouver
-    err = 0
-
+    # Couche 3
+    dA3 = np.matmul(w4.T, dZ4)
+    dZ3 = np.multiply(dA3, reluDerivative(Z3))
     dw3 = (2 / m) * np.matmul(
-            np.multiply(Z3 - x_train, reluDerivative(Z3)), 
+            dZ3, 
             A2.T
         )
+    db3 = (2 / m) * np.sum(dZ3, axis=1, keepdims=True)
 
-    # Weights and biases update
+    # Couche 2
+    dA2 = np.matmul(w3.T, dZ3)
+    dZ2 = np.multiply(dA2, reluDerivative(Z2))
+    dw2 = (2 / m) * np.matmul(
+            dZ2, 
+            A1.T
+        )
+    db2 = (2 / m) * np.sum(dZ2, axis=1, keepdims=True)
+
+    # Couche 1
+    dA1 = np.matmul(w2.T, dZ2)
+    dZ1 = np.multiply(dA1, reluDerivative(Z1))
+    dw1 = (2 / m) * np.matmul(
+            dZ1, 
+            x_train.T
+        )
+    db1 = (2 / m) * np.sum(dZ1, axis=1, keepdims=True)
+        
+    # Update des poids et des biais
     w4 = w4 - learning_rate * dw4
     b4 = b4 - learning_rate * db4
-
-    # w3 = w3 - learning_rate * dW3
-    # b3 = b3 - learning_rate * db3
-    # w2 = w2 - learning_rate * dW2
-    # b2 = b2 - learning_rate * db2
-    # w1 = w1 - learning_rate * dW1
-    # b1 = b1 - learning_rate * db1
+    
+    w3 = w3 - learning_rate * dw3
+    b3 = b3 - learning_rate * db3
+    
+    w2 = w2 - learning_rate * dw2
+    b2 = b2 - learning_rate * db2
+    
+    w1 = w1 - learning_rate * dw1
+    b1 = b1 - learning_rate * db1
 
     print("Epoch", i, "cost: ", cost)
 
+Z1 = np.matmul(w1, x_test) + b1
+A1 = np.maximum(Z1, 0)
+
+Z2 = np.matmul(w2, A1) + b2
+A2 = np.maximum(Z2, 0)
+
+Z3 = np.matmul(w3, A2) + b3
+A3 = np.maximum(Z3, 0)
+
+Z4 = np.matmul(w4, A3) + b4
+A4 = np.maximum(Z4, 0)
 
 # %%
+
+plt.imshow(x_test[:,0].reshape(28,28), cmap = matplotlib.cm.binary)
+plt.axis("off")
+plt.show()
+
+# %%
+plt.imshow(A4[:,0].reshape(28,28), cmap = matplotlib.cm.binary)
+plt.axis("off")
+plt.show()
+
+
