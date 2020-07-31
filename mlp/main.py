@@ -1,3 +1,5 @@
+# %%
+
 from matplotlib import pyplot as plt
 import os
 
@@ -67,7 +69,7 @@ learning_rate = 1
 
 costs = []
 accuracy = []
-epochs = 1000
+epochs = 1
 
 # ACTUAL TRAINING
 for i in range(epochs):
